@@ -153,4 +153,5 @@ public class TypesControllerTest {
 	mockMvc.perform(delete("/types/" + id))
 			.andExpect(status().isOk());
 
+ }
 }
