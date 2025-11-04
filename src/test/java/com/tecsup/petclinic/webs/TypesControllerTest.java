@@ -112,12 +112,45 @@ public class TypesControllerTest {
 			mockMvc.perform(delete("/types/" + "1000" ))
             .andDo(print())
 			.andExpect(status().isNotFound());
-}
+
 	}
 
 	@Test
 	public void testUpdateType() throws Exception {
-		// TODO: Completar aquí
-	}
+
+	String TYPE_NAME = "Mammal";
+	String UP_TYPE_NAME = "Bird";
+
+	PetTypeDTO newPetTypeDTO = new PetTypeDTO();
+	newPetTypeDTO.setName(TYPE_NAME);
+
+	ResultActions mvcActions = mockMvc.perform(post("/types")
+					.content(om.writeValueAsString(newPetTypeDTO))
+					.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+					.andDo(print())
+					.andExpect(status().isCreated());
+
+	String response = mvcActions.andReturn().getResponse().getContentAsString();
+	Integer id = JsonPath.parse(response).read("$.id");
+
+	PetTypeDTO upPetTypeDTO = new PetTypeDTO();
+	upPetTypeDTO.setId(id);
+	upPetTypeDTO.setName(UP_TYPE_NAME);
+
+	mockMvc.perform(put("/types/"+id)
+					.content(om.writeValueAsString(upPetTypeDTO))
+					.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+			.andDo(print())
+			.andExpect(status().isOk());
+
+	mockMvc.perform(get("/types/" + id))
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.id", is(id)))
+			.andExpect(jsonPath("$.name", is(UP_TYPE_NAME)));
+
+	mockMvc.perform(delete("/types/" + id))
+			.andExpect(status().isOk());
 
 }
