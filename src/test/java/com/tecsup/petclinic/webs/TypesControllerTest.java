@@ -69,12 +69,16 @@ public class TypesControllerTest {
 
 	@Test
 	public void testDeleteType() throws Exception {
-		// TODO: Completar aquí
+			
+}
 	}
 
 	@Test
 	public void testDeleteTypeKO() throws Exception {
-		// TODO: Completar aquí
+			mockMvc.perform(delete("/types/" + "1000" ))
+            .andDo(print())
+			.andExpect(status().isNotFound());
+}
 	}
 
 	@Test
