@@ -1,5 +1,12 @@
 package com.tecsup.petclinic.webs;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.test.web.servlet.ResultActions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import com.jayway.jsonpath.JsonPath;
+import com.tecsup.petclinic.dtos.PetTypeDTO;
 import static org.hamcrest.CoreMatchers.is;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,13 +71,40 @@ public class TypesControllerTest {
 	
 	@Test
 	public void testCreateType() throws Exception {
-		// TODO: Completar aquí
-	}
+        String TYPE_NAME = "Reptile";
+
+        PetTypeDTO newPetTypeDTO = new PetTypeDTO();
+        newPetTypeDTO.setName(TYPE_NAME);
+
+        this.mockMvc.perform(post("/types")
+                        .content(om.writeValueAsString(newPetTypeDTO))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name", is(TYPE_NAME)));
+
+    }
 
 	@Test
 	public void testDeleteType() throws Exception {
-			
-}
+        String TYPE_NAME = "Beetle";
+
+        PetTypeDTO newPetTypeDTO = new PetTypeDTO();
+        newPetTypeDTO.setName(TYPE_NAME);
+
+        ResultActions mvcActions = mockMvc.perform(post("/types")
+                        .content(om.writeValueAsString(newPetTypeDTO))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isCreated());
+
+        String response = mvcActions.andReturn().getResponse().getContentAsString();
+
+        Integer id = JsonPath.parse(response).read("$.id");
+
+        mockMvc.perform(delete("/types/" + id ))
+                .andExpect(status().isOk());
+
 	}
 
 	@Test
