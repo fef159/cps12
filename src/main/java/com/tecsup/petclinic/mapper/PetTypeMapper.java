@@ -9,8 +9,11 @@ import org.mapstruct.factory.Mappers;
 import com.tecsup.petclinic.dtos.PetTypeDTO;
 import com.tecsup.petclinic.entities.PetType;
 
-
-@Mapper(componentModel = "spring", nullValueMappingStrategy =  NullValueMappingStrategy.RETURN_DEFAULT)
+/**
+ * Mapper para convertir entre PetType y PetTypeDTO.
+ * Usa MapStruct para generar el código automáticamente.
+ */
+@Mapper(componentModel = "spring", nullValueMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
 public interface PetTypeMapper {
 
 	PetTypeMapper INSTANCE = Mappers.getMapper(PetTypeMapper.class);
@@ -21,7 +24,5 @@ public interface PetTypeMapper {
 
 	List<PetTypeDTO> mapToDtoList(List<PetType> petTypeList);
 
-    List<PetType> mapToEntityList(List<PetTypeDTO> petTypeDTOList);
-
+	List<PetType> mapToEntityList(List<PetTypeDTO> petTypeDTOList);
 }
-

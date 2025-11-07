@@ -22,5 +22,9 @@ public class PetTypeDTO {
 	
 	private String name;
 
+	private String description;
+
+	private String careLevel;
+
 }
 

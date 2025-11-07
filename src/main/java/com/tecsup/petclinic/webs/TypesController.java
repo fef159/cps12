@@ -4,14 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.tecsup.petclinic.dtos.PetTypeDTO;
 import com.tecsup.petclinic.entities.PetType;
@@ -22,7 +15,7 @@ import com.tecsup.petclinic.services.PetTypeService;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 
+ *
  * @author jgomezm
  *
  */
@@ -30,22 +23,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TypesController {
 
-	String name = null;
+	private final PetTypeService petTypeService;
+	private final PetTypeMapper mapper;
 
-	//@Autowired
-	private PetTypeService petTypeService;
-
-	//@Autowired
-	private PetTypeMapper mapper;
-
-	/**
-	 *  Change
-	 * @param petTypeService
-	 * @param mapper
-	 */
-	public TypesController(PetTypeService petTypeService, PetTypeMapper mapper){
+	public TypesController(PetTypeService petTypeService, PetTypeMapper mapper) {
 		this.petTypeService = petTypeService;
-		this.mapper = mapper ;
+		this.mapper = mapper;
 	}
 
 	/**
@@ -55,19 +38,15 @@ public class TypesController {
 	 */
 	@GetMapping(value = "/types")
 	public ResponseEntity<List<PetTypeDTO>> findAllTypes() {
-
 		List<PetType> petTypes = petTypeService.findAll();
-		log.info("petTypes: " + petTypes);
+		log.info("petTypes: {}", petTypes);
 		petTypes.forEach(item -> log.info("PetType >>  {} ", item));
 
 		List<PetTypeDTO> petTypesTO = this.mapper.mapToDtoList(petTypes);
-		log.info("petTypesTO: " + petTypesTO);
-		petTypesTO.forEach(item -> log.info("PetTypeTO >>  {} ", item));
+		log.info("petTypesTO: {}", petTypesTO);
 
 		return ResponseEntity.ok(petTypesTO);
-
 	}
-
 
 	/**
 	 * Create pet type
@@ -78,61 +57,48 @@ public class TypesController {
 	@PostMapping(value = "/types")
 	@ResponseStatus(HttpStatus.CREATED)
 	ResponseEntity<PetTypeDTO> create(@RequestBody PetTypeDTO petTypeDTO) {
-
-		//PetType newPetType = this.mapper.mapToEntity(petTypeDTO);
 		PetTypeDTO newPetTypeDTO = petTypeService.create(petTypeDTO);
-
-		return  ResponseEntity.status(HttpStatus.CREATED).body(newPetTypeDTO);
-
+		return ResponseEntity.status(HttpStatus.CREATED).body(newPetTypeDTO);
 	}
-
 
 	/**
 	 * Find pet type by id
 	 *
 	 * @param id
 	 * @return
-	 * @throws PetTypeNotFoundException
 	 */
 	@GetMapping(value = "/types/{id}")
 	ResponseEntity<PetTypeDTO> findById(@PathVariable Integer id) {
-
-		PetTypeDTO petTypeDto = null;
-
 		try {
-            petTypeDto = petTypeService.findById(id);
-
+			PetTypeDTO petTypeDto = petTypeService.findById(id);
+			return ResponseEntity.ok(petTypeDto);
 		} catch (PetTypeNotFoundException e) {
 			return ResponseEntity.notFound().build();
 		}
-		return ResponseEntity.ok(petTypeDto);
 	}
 
 	/**
-	 * Update and create pet type
+	 * Update pet type by id
 	 *
 	 * @param petTypeDTO
 	 * @param id
 	 * @return
 	 */
 	@PutMapping(value = "/types/{id}")
-	ResponseEntity<PetTypeDTO>  update(@RequestBody PetTypeDTO petTypeDTO, @PathVariable Integer id) {
-
-		PetTypeDTO updatePetTypeDto = null;
-
+	ResponseEntity<PetTypeDTO> update(@RequestBody PetTypeDTO petTypeDTO, @PathVariable Integer id) {
 		try {
+			PetTypeDTO existingPetType = petTypeService.findById(id);
 
-            updatePetTypeDto = petTypeService.findById(id);
+			existingPetType.setName(petTypeDTO.getName());
+			existingPetType.setDescription(petTypeDTO.getDescription());
+			existingPetType.setCareLevel(petTypeDTO.getCareLevel());
 
-            updatePetTypeDto.setName(petTypeDTO.getName());
-
-			petTypeService.update(updatePetTypeDto);
+			PetTypeDTO updatedPetType = petTypeService.update(existingPetType);
+			return ResponseEntity.ok(updatedPetType);
 
 		} catch (PetTypeNotFoundException e) {
 			return ResponseEntity.notFound().build();
 		}
-
-		return ResponseEntity.ok(updatePetTypeDto);
 	}
 
 	/**
@@ -142,14 +108,11 @@ public class TypesController {
 	 */
 	@DeleteMapping(value = "/types/{id}")
 	ResponseEntity<String> delete(@PathVariable Integer id) {
-
 		try {
 			petTypeService.delete(id);
-			return ResponseEntity.ok(" Delete ID :" + id);
+			return ResponseEntity.ok("Deleted ID: " + id);
 		} catch (PetTypeNotFoundException e) {
 			return ResponseEntity.notFound().build();
 		}
 	}
-
 }
-

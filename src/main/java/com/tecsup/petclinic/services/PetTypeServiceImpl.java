@@ -15,7 +15,7 @@ import com.tecsup.petclinic.repositories.PetTypeRepository;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 
+ *
  * @author jgomezm
  *
  */
@@ -23,100 +23,56 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PetTypeServiceImpl implements PetTypeService {
 
-	PetTypeRepository petTypeRepository;
-	PetTypeMapper petTypeMapper;
+	private final PetTypeRepository petTypeRepository;
+	private final PetTypeMapper petTypeMapper;
 
-	public PetTypeServiceImpl (PetTypeRepository petTypeRepository, PetTypeMapper petTypeMapper) {
+	public PetTypeServiceImpl(PetTypeRepository petTypeRepository, PetTypeMapper petTypeMapper) {
 		this.petTypeRepository = petTypeRepository;
 		this.petTypeMapper = petTypeMapper;
 	}
 
-
-	/**
-	 * 
-	 * @param petTypeDTO
-	 * @return
-	 */
 	@Override
 	public PetTypeDTO create(PetTypeDTO petTypeDTO) {
-
-		PetType newPetType = petTypeRepository.save(petTypeMapper.mapToEntity(petTypeDTO));
-
-		return petTypeMapper.mapToDto(newPetType);
+		PetType newPetType = petTypeMapper.mapToEntity(petTypeDTO);
+		PetType savedPetType = petTypeRepository.save(newPetType);
+		return petTypeMapper.mapToDto(savedPetType);
 	}
 
-	/**
-	 * 
-	 * @param petTypeDTO
-	 * @return
-	 */
 	@Override
 	public PetTypeDTO update(PetTypeDTO petTypeDTO) {
-
-		PetType newPetType = petTypeRepository.save(petTypeMapper.mapToEntity(petTypeDTO));
-
-		return petTypeMapper.mapToDto(newPetType);
-
+		PetType updatedEntity = petTypeMapper.mapToEntity(petTypeDTO);
+		PetType savedPetType = petTypeRepository.save(updatedEntity);
+		return petTypeMapper.mapToDto(savedPetType);
 	}
 
-
-	/**
-	 * 
-	 * @param id
-	 * @throws PetTypeNotFoundException
-	 */
 	@Override
-	public void delete(Integer id) throws PetTypeNotFoundException{
-
+	public void delete(Integer id) throws PetTypeNotFoundException {
 		PetTypeDTO petType = findById(id);
-
-		petTypeRepository.delete(this.petTypeMapper.mapToEntity(petType));
-
+		petTypeRepository.delete(petTypeMapper.mapToEntity(petType));
 	}
 
-	/**
-	 * 
-	 * @param id
-	 * @return
-	 */
 	@Override
 	public PetTypeDTO findById(Integer id) throws PetTypeNotFoundException {
-
 		Optional<PetType> petType = petTypeRepository.findById(id);
 
-		if ( !petType.isPresent())
+		if (petType.isEmpty()) {
 			throw new PetTypeNotFoundException("Record not found...!");
+		}
 
-		return this.petTypeMapper.mapToDto(petType.get());
+		return petTypeMapper.mapToDto(petType.get());
 	}
 
-	/**
-	 * 
-	 * @param name
-	 * @return
-	 */
 	@Override
 	public List<PetTypeDTO> findByName(String name) {
-
 		List<PetType> petTypes = petTypeRepository.findByName(name);
-
-		petTypes.forEach(petType -> log.info("" + petType));
-
-		return petTypes
-				.stream()
-				.map(this.petTypeMapper::mapToDto)
+		petTypes.forEach(petType -> log.info("{}", petType));
+		return petTypes.stream()
+				.map(petTypeMapper::mapToDto)
 				.collect(Collectors.toList());
 	}
 
-	/**
-	 *
-	 * @return
-	 */
 	@Override
 	public List<PetType> findAll() {
-		//
 		return petTypeRepository.findAll();
-
 	}
 }
-

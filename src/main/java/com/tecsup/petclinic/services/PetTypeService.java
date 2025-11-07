@@ -7,51 +7,55 @@ import com.tecsup.petclinic.entities.PetType;
 import com.tecsup.petclinic.exceptions.PetTypeNotFoundException;
 
 /**
- * 
  * @author jgomezm
- *
  */
 public interface PetTypeService {
 
 	/**
-	 * 
-	 * @param petTypeDTO
-	 * @return
+	 * Crea un nuevo tipo de mascota.
+	 *
+	 * @param petTypeDTO DTO con name, description y careLevel.
+	 * @return PetTypeDTO creado.
 	 */
-	public PetTypeDTO create(PetTypeDTO petTypeDTO);
+	PetTypeDTO create(PetTypeDTO petTypeDTO);
 
 	/**
-	 * 
-	 * @param petTypeDTO
-	 * @return
+	 * Actualiza un tipo de mascota existente.
+	 *
+	 * @param petTypeDTO DTO con los datos actualizados.
+	 * @return PetTypeDTO actualizado.
 	 */
 	PetTypeDTO update(PetTypeDTO petTypeDTO);
 
 	/**
-	 * 
-	 * @param id
-	 * @throws PetTypeNotFoundException
+	 * Elimina un tipo de mascota por su ID.
+	 *
+	 * @param id ID del tipo de mascota.
+	 * @throws PetTypeNotFoundException si el ID no existe.
 	 */
 	void delete(Integer id) throws PetTypeNotFoundException;
 
 	/**
-	 * 
-	 * @param id
-	 * @return
+	 * Busca un tipo de mascota por ID.
+	 *
+	 * @param id ID del tipo de mascota.
+	 * @return PetTypeDTO encontrado.
+	 * @throws PetTypeNotFoundException si no existe.
 	 */
 	PetTypeDTO findById(Integer id) throws PetTypeNotFoundException;
 
 	/**
-	 * 
-	 * @param name
-	 * @return
+	 * Busca tipos de mascota por nombre.
+	 *
+	 * @param name Nombre del tipo de mascota.
+	 * @return Lista de PetTypeDTO.
 	 */
 	List<PetTypeDTO> findByName(String name);
 
 	/**
+	 * Devuelve todos los tipos de mascota existentes.
 	 *
-	 * @return
+	 * @return Lista de entidades PetType.
 	 */
 	List<PetType> findAll();
 }
-
