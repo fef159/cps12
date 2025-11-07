@@ -18,9 +18,13 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PetTypeDTO {
 
-	private Integer id;
-	
-	private String name;
+    private Integer id;
+
+    private String name;
+
+    private String description;
+
+    private String careLevel;
 
 }
 

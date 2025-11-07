@@ -2,16 +2,10 @@ package com.tecsup.petclinic.webs;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.tecsup.petclinic.dtos.PetTypeDTO;
 import com.tecsup.petclinic.entities.PetType;
@@ -22,134 +16,102 @@ import com.tecsup.petclinic.services.PetTypeService;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 
- * @author jgomezm
+ * Controller para la entidad PetType
  *
+ * @author jgome
  */
 @RestController
 @Slf4j
 public class TypesController {
 
-	String name = null;
+    @Autowired
+    private PetTypeService petTypeService;
 
-	//@Autowired
-	private PetTypeService petTypeService;
+    @Autowired
+    private PetTypeMapper mapper;
 
-	//@Autowired
-	private PetTypeMapper mapper;
+    /**
+     * Constructor explícito (opcional con @Autowired implícito)
+     */
+    public TypesController(PetTypeService petTypeService, PetTypeMapper mapper) {
+        this.petTypeService = petTypeService;
+        this.mapper = mapper;
+    }
 
-	/**
-	 *  Change
-	 * @param petTypeService
-	 * @param mapper
-	 */
-	public TypesController(PetTypeService petTypeService, PetTypeMapper mapper){
-		this.petTypeService = petTypeService;
-		this.mapper = mapper ;
-	}
+    /**
+     * GET /types - Lista todos los tipos de mascota
+     */
+    @GetMapping(value = "/types")
+    public ResponseEntity<List<PetTypeDTO>> findAllTypes() {
 
-	/**
-	 * Get all pet types
-	 *
-	 * @return
-	 */
-	@GetMapping(value = "/types")
-	public ResponseEntity<List<PetTypeDTO>> findAllTypes() {
+        List<PetType> petTypes = petTypeService.findAll();
+        log.info("petTypes: {}", petTypes);
 
-		List<PetType> petTypes = petTypeService.findAll();
-		log.info("petTypes: " + petTypes);
-		petTypes.forEach(item -> log.info("PetType >>  {} ", item));
+        List<PetTypeDTO> petTypesTO = this.mapper.mapToDtoList(petTypes);
+        log.info("petTypesDTO: {}", petTypesTO);
 
-		List<PetTypeDTO> petTypesTO = this.mapper.mapToDtoList(petTypes);
-		log.info("petTypesTO: " + petTypesTO);
-		petTypesTO.forEach(item -> log.info("PetTypeTO >>  {} ", item));
+        return ResponseEntity.ok(petTypesTO);
+    }
 
-		return ResponseEntity.ok(petTypesTO);
+    /**
+     * POST /types - Crea un nuevo tipo de mascota
+     */
+    @PostMapping(value = "/types")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<PetTypeDTO> create(@RequestBody PetTypeDTO petTypeDTO) {
 
-	}
+        // ✅ Usar directamente el servicio con DTO, según tu interfaz actual
+        PetTypeDTO newPetTypeDTO = petTypeService.create(petTypeDTO);
 
+        return ResponseEntity.status(HttpStatus.CREATED).body(newPetTypeDTO);
+    }
 
-	/**
-	 * Create pet type
-	 *
-	 * @param petTypeDTO
-	 * @return
-	 */
-	@PostMapping(value = "/types")
-	@ResponseStatus(HttpStatus.CREATED)
-	ResponseEntity<PetTypeDTO> create(@RequestBody PetTypeDTO petTypeDTO) {
+    /**
+     * GET /types/{id} - Buscar tipo por ID
+     */
+    @GetMapping(value = "/types/{id}")
+    public ResponseEntity<PetTypeDTO> findById(@PathVariable Integer id) {
 
-		//PetType newPetType = this.mapper.mapToEntity(petTypeDTO);
-		PetTypeDTO newPetTypeDTO = petTypeService.create(petTypeDTO);
+        try {
+            PetTypeDTO petTypeDto = petTypeService.findById(id);
+            return ResponseEntity.ok(petTypeDto);
+        } catch (PetTypeNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
-		return  ResponseEntity.status(HttpStatus.CREATED).body(newPetTypeDTO);
+    /**
+     * PUT /types/{id} - Actualiza un tipo de mascota existente
+     */
+    @PutMapping(value = "/types/{id}")
+    public ResponseEntity<PetTypeDTO> update(@RequestBody PetTypeDTO petTypeDTO, @PathVariable Integer id) {
 
-	}
-
-
-	/**
-	 * Find pet type by id
-	 *
-	 * @param id
-	 * @return
-	 * @throws PetTypeNotFoundException
-	 */
-	@GetMapping(value = "/types/{id}")
-	ResponseEntity<PetTypeDTO> findById(@PathVariable Integer id) {
-
-		PetTypeDTO petTypeDto = null;
-
-		try {
-            petTypeDto = petTypeService.findById(id);
-
-		} catch (PetTypeNotFoundException e) {
-			return ResponseEntity.notFound().build();
-		}
-		return ResponseEntity.ok(petTypeDto);
-	}
-
-	/**
-	 * Update and create pet type
-	 *
-	 * @param petTypeDTO
-	 * @param id
-	 * @return
-	 */
-	@PutMapping(value = "/types/{id}")
-	ResponseEntity<PetTypeDTO>  update(@RequestBody PetTypeDTO petTypeDTO, @PathVariable Integer id) {
-
-		PetTypeDTO updatePetTypeDto = null;
-
-		try {
-
-            updatePetTypeDto = petTypeService.findById(id);
+        try {
+            PetTypeDTO updatePetTypeDto = petTypeService.findById(id);
 
             updatePetTypeDto.setName(petTypeDTO.getName());
+            updatePetTypeDto.setDescription(petTypeDTO.getDescription());
+            updatePetTypeDto.setCareLevel(petTypeDTO.getCareLevel());
 
-			petTypeService.update(updatePetTypeDto);
+            PetTypeDTO updatedPetType = petTypeService.update(updatePetTypeDto);
 
-		} catch (PetTypeNotFoundException e) {
-			return ResponseEntity.notFound().build();
-		}
+            return ResponseEntity.ok(updatedPetType);
 
-		return ResponseEntity.ok(updatePetTypeDto);
-	}
+        } catch (PetTypeNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
-	/**
-	 * Delete pet type by id
-	 *
-	 * @param id
-	 */
-	@DeleteMapping(value = "/types/{id}")
-	ResponseEntity<String> delete(@PathVariable Integer id) {
-
-		try {
-			petTypeService.delete(id);
-			return ResponseEntity.ok(" Delete ID :" + id);
-		} catch (PetTypeNotFoundException e) {
-			return ResponseEntity.notFound().build();
-		}
-	}
-
+    /**
+     * DELETE /types/{id} - Elimina un tipo de mascota por ID
+     */
+    @DeleteMapping(value = "/types/{id}")
+    public ResponseEntity<String> delete(@PathVariable Integer id) {
+        try {
+            petTypeService.delete(id);
+            return ResponseEntity.ok("Delete ID: " + id);
+        } catch (PetTypeNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }
-

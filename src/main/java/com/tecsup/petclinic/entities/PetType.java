@@ -27,6 +27,12 @@ public class PetType {
 	@Column(name = "name")
 	private String name;
 
+    @Column(length = 100)
+    private String description;
+
+    @Column(name = "care_level", length = 20)
+    private String careLevel;
+
 //	@OneToMany(mappedBy = "type", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 //	@ToString.Exclude
 //	@EqualsAndHashCode.Exclude

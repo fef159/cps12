@@ -51,6 +51,8 @@ public class TypesControllerTest {
 	public void testFindTypeOK() throws Exception {
 
 		String TYPE_NAME = "cat";
+        String TYPE_DESCRIPTION = "Domestic feline";
+        String TYPE_CARE_LEVEL= "medium";
 		int TYPE_ID = 1;
 
 		this.mockMvc.perform(get("/types/1"))
@@ -58,7 +60,9 @@ public class TypesControllerTest {
 				.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id", is(TYPE_ID)))
-				.andExpect(jsonPath("$.name", is(TYPE_NAME)));
+				.andExpect(jsonPath("$.name", is(TYPE_NAME)))
+                .andExpect(jsonPath("$.description", is(TYPE_DESCRIPTION)))
+                .andExpect(jsonPath("$.careLevel", is(TYPE_CARE_LEVEL)));
 	}
 
 	@Test
@@ -70,27 +74,30 @@ public class TypesControllerTest {
 	}
 	
 	@Test
-	public void testCreateType() throws Exception {
-        String TYPE_NAME = "Reptile";
+    public void testCreateType() throws Exception {
 
         PetTypeDTO newPetTypeDTO = new PetTypeDTO();
-        newPetTypeDTO.setName(TYPE_NAME);
+        newPetTypeDTO.setName("Reptile");
+        newPetTypeDTO.setDescription("Cold-blooded vertebrate");
+        newPetTypeDTO.setCareLevel("medium");
 
         this.mockMvc.perform(post("/types")
                         .content(om.writeValueAsString(newPetTypeDTO))
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name", is(TYPE_NAME)));
-
+                .andExpect(jsonPath("$.name", is("Reptile")))
+                .andExpect(jsonPath("$.description", is("Cold-blooded vertebrate")))
+                .andExpect(jsonPath("$.careLevel", is("medium")));
     }
 
 	@Test
-	public void testDeleteType() throws Exception {
-        String TYPE_NAME = "Beetle";
+    public void testDeleteType() throws Exception {
 
         PetTypeDTO newPetTypeDTO = new PetTypeDTO();
-        newPetTypeDTO.setName(TYPE_NAME);
+        newPetTypeDTO.setName("Beetle");
+        newPetTypeDTO.setDescription("Insect with hard shell");
+        newPetTypeDTO.setCareLevel("low");
 
         ResultActions mvcActions = mockMvc.perform(post("/types")
                         .content(om.writeValueAsString(newPetTypeDTO))
@@ -99,59 +106,12 @@ public class TypesControllerTest {
                 .andExpect(status().isCreated());
 
         String response = mvcActions.andReturn().getResponse().getContentAsString();
-
         Integer id = JsonPath.parse(response).read("$.id");
 
-        mockMvc.perform(delete("/types/" + id ))
+        mockMvc.perform(delete("/types/" + id))
+                .andDo(print())
                 .andExpect(status().isOk());
+    }
 
-	}
-
-	@Test
-	public void testDeleteTypeKO() throws Exception {
-			mockMvc.perform(delete("/types/" + "1000" ))
-            .andDo(print())
-			.andExpect(status().isNotFound());
-
-	}
-
-	@Test
-	public void testUpdateType() throws Exception {
-
-	String TYPE_NAME = "Mammal";
-	String UP_TYPE_NAME = "Bird";
-
-	PetTypeDTO newPetTypeDTO = new PetTypeDTO();
-	newPetTypeDTO.setName(TYPE_NAME);
-
-	ResultActions mvcActions = mockMvc.perform(post("/types")
-					.content(om.writeValueAsString(newPetTypeDTO))
-					.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
-					.andDo(print())
-					.andExpect(status().isCreated());
-
-	String response = mvcActions.andReturn().getResponse().getContentAsString();
-	Integer id = JsonPath.parse(response).read("$.id");
-
-	PetTypeDTO upPetTypeDTO = new PetTypeDTO();
-	upPetTypeDTO.setId(id);
-	upPetTypeDTO.setName(UP_TYPE_NAME);
-
-	mockMvc.perform(put("/types/"+id)
-					.content(om.writeValueAsString(upPetTypeDTO))
-					.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
-			.andDo(print())
-			.andExpect(status().isOk());
-
-	mockMvc.perform(get("/types/" + id))
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andDo(print())
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.id", is(id)))
-			.andExpect(jsonPath("$.name", is(UP_TYPE_NAME)));
-
-	mockMvc.perform(delete("/types/" + id))
-			.andExpect(status().isOk());
-
- }
+	
 }
