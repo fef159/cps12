@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TypesControllerTest {
 
-	private static final ObjectMapper om = new ObjectMapper();
+    private static final ObjectMapper om = new ObjectMapper();
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -42,7 +42,7 @@ public class TypesControllerTest {
 		this.mockMvc.perform(get("/types"))
 				.andExpect(status().isOk())
 				.andExpect(content()
-						.contentType(MediaType.APPLICATION_JSON_VALUE))
+				.contentType(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(jsonPath("$[?(@.id == " + ID_EXPECTED + ")].id").exists());
 	}
 
@@ -71,23 +71,87 @@ public class TypesControllerTest {
 
 	@Test
 	public void testCreateType() throws Exception {
-		String TYPE_NAME = "Reptile";
-		String DESCRIPTION = "Cold-blooded animal with scales";
-		String CARE_LEVEL = "Medium";
+        String TYPE_NAME = "Reptile";
 
-		PetTypeDTO newPetTypeDTO = new PetTypeDTO();
-		newPetTypeDTO.setName(TYPE_NAME);
-		newPetTypeDTO.setDescription(DESCRIPTION);
-		newPetTypeDTO.setCareLevel(CARE_LEVEL);
+        PetTypeDTO newPetTypeDTO = new PetTypeDTO();
+        newPetTypeDTO.setName(TYPE_NAME);
 
-		this.mockMvc.perform(post("/types")
-						.content(om.writeValueAsString(newPetTypeDTO))
-						.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
-				.andDo(print())
-				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.name", is(TYPE_NAME)))
-				.andExpect(jsonPath("$.description", is(DESCRIPTION)))
-				.andExpect(jsonPath("$.careLevel", is(CARE_LEVEL)));
+        this.mockMvc.perform(post("/types")
+                        .content(om.writeValueAsString(newPetTypeDTO))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name", is(TYPE_NAME)));
+
+    }
+
+	@Test
+	public void testDeleteType() throws Exception {
+        String TYPE_NAME = "Beetle";
+
+        PetTypeDTO newPetTypeDTO = new PetTypeDTO();
+        newPetTypeDTO.setName(TYPE_NAME);
+
+        ResultActions mvcActions = mockMvc.perform(post("/types")
+                        .content(om.writeValueAsString(newPetTypeDTO))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isCreated());
+
+        String response = mvcActions.andReturn().getResponse().getContentAsString();
+
+        Integer id = JsonPath.parse(response).read("$.id");
+
+        mockMvc.perform(delete("/types/" + id ))
+                .andExpect(status().isOk());
+
 	}
 
+	@Test
+	public void testDeleteTypeKO() throws Exception {
+			mockMvc.perform(delete("/types/" + "1000" ))
+            .andDo(print())
+			.andExpect(status().isNotFound());
+
+	}
+
+	@Test
+	public void testUpdateType() throws Exception {
+
+	String TYPE_NAME = "Mammal";
+	String UP_TYPE_NAME = "Bird";
+
+	PetTypeDTO newPetTypeDTO = new PetTypeDTO();
+	newPetTypeDTO.setName(TYPE_NAME);
+
+	ResultActions mvcActions = mockMvc.perform(post("/types")
+					.content(om.writeValueAsString(newPetTypeDTO))
+					.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+					.andDo(print())
+					.andExpect(status().isCreated());
+
+	String response = mvcActions.andReturn().getResponse().getContentAsString();
+	Integer id = JsonPath.parse(response).read("$.id");
+
+	PetTypeDTO upPetTypeDTO = new PetTypeDTO();
+	upPetTypeDTO.setId(id);
+	upPetTypeDTO.setName(UP_TYPE_NAME);
+
+	mockMvc.perform(put("/types/"+id)
+					.content(om.writeValueAsString(upPetTypeDTO))
+					.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+			.andDo(print())
+			.andExpect(status().isOk());
+
+	mockMvc.perform(get("/types/" + id))
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.id", is(id)))
+			.andExpect(jsonPath("$.name", is(UP_TYPE_NAME)));
+
+	mockMvc.perform(delete("/types/" + id))
+			.andExpect(status().isOk());
+
+ }
 }
