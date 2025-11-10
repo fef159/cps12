@@ -1,31 +1,47 @@
 pipeline {
+
     agent any
+
+    tools {
+        maven 'Maven'
+        jdk 'Java'
+        // git 'Git'
+    }
+
     stages {
-        stage('Clone') {
+
+        stage('Checkout') {
             steps {
-                sh 'rm -rf petclinic_integration_test' // Remove existing directory
-                sh 'git clone https://github.com/jgomezz/petclinic_integration_test.git'
+                echo ' Getting code...'
+                checkout scm
             }
         }
-        stage('Compile') {
+
+        stage('Build') {
             steps {
-                dir('petclinic_integration_test') {
-                    sh 'mvn clean compile'  // Example Maven command
-                }
+                echo '🔨 Building...'
+                sh 'mvn clean compile'
             }
         }
+
         stage('Test') {
             steps {
-                dir('petclinic_integration_test') {
-                    withCredentials([usernamePassword(credentialsId: 'DB_CREDENTIALS', usernameVariable: 'DB_USERNAME', passwordVariable: 'DB_PASSWORD')]) {
-                        sh """
-                        export DB_USERNAME=${DB_USERNAME}
-                        export DB_PASSWORD=${DB_PASSWORD}
-                        mvn test -Dspring.profiles.active=test
-                        """
-                    }
-                }
+                echo ' Testing...'
+                sh 'mvn test'
             }
         }
+
+        stage('Package') {
+            steps {
+                echo ' Creating JAR...'
+                sh 'mvn package -DskipTests'
+            }
+        }
+                stage('Package2') {
+                    steps {
+                        echo ' Creating JAR...'
+                        sh 'mvn package -DskipTests'
+                    }
+                }
     }
 }
